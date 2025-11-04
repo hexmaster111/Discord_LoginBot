@@ -14,6 +14,7 @@ using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Rest;
+using Newtonsoft.Json;
 
 
 
@@ -37,19 +38,31 @@ host.AddSlashCommand("login_screen_disable_for", "Disable login screen for a spe
 host.AddSlashCommand("login_screen_set_timeout", "after <when> time, user will need to re-type to gain access to the server.", (User usr, TimeSpan when, Guild guild) => $"login enable {usr.Id}");
 
 
+
 await host.RunAsync();
 
 
 return;
 
-class PerServerState
+[JsonObject(MemberSerialization.OptIn)]
+class PerUserState
 {
-
+    [JsonProperty] public bool IsLoginEnabled;
+    [JsonProperty] public DateTime SessionLoginTime;
+    [JsonProperty] public TimeSpan TimeoutAfter;
 }
 
+[JsonObject(MemberSerialization.OptIn)]
+class PerServerState
+{
+    [JsonProperty] public Dictionary<ulong, PerUserState> UserStates = new();
+}
+
+
+[JsonObject(MemberSerialization.OptIn)]
 class State
 {
-    public Dictionary<ulong /*guild id*/, PerServerState> ServerStates = new();
+    [JsonProperty] public Dictionary<ulong /*guild id*/, PerServerState> ServerStates = new();
 }
 
 
